@@ -10,7 +10,7 @@ export interface ModelResult {
 class InMemoryIOHandler implements io.IOHandler {
 
 	constructor(private readonly modelJSON: io.ModelJSON,
-		private readonly weights: ArrayBuffer) {
+		private readonly weights: ArrayBufferLike) {
 	}
 
 	async load(): Promise<io.ModelArtifacts> {
@@ -29,7 +29,7 @@ class InMemoryIOHandler implements io.IOHandler {
 	private async getModelArtifactsForJSON(
 		modelJSON: io.ModelJSON,
 		loadWeights: (weightsManifest: io.WeightsManifestConfig) => Promise<[
-		  /* weightSpecs */ io.WeightsManifestEntry[], /* weightData */ ArrayBuffer
+		  /* weightSpecs */ io.WeightsManifestEntry[], /* weightData */ ArrayBufferLike
 		]>): Promise<io.ModelArtifacts> {
 		const modelArtifacts: io.ModelArtifacts = {
 			modelTopology: modelJSON.modelTopology,
@@ -60,7 +60,7 @@ class InMemoryIOHandler implements io.IOHandler {
 		return modelArtifacts;
 	}
 
-	private async loadWeights(weightsManifest: io.WeightsManifestConfig): Promise<[io.WeightsManifestEntry[], ArrayBuffer]> {
+	private async loadWeights(weightsManifest: io.WeightsManifestConfig): Promise<[io.WeightsManifestEntry[], ArrayBufferLike]> {
 		const weightSpecs = [];
 		for (const entry of weightsManifest) {
 			weightSpecs.push(...entry.weights);
@@ -72,7 +72,7 @@ class InMemoryIOHandler implements io.IOHandler {
 
 export interface ModelOperationsOptions {
 	modelJsonLoaderFunc?: () => Promise<{ [key:string]: any }>;
-	weightsLoaderFunc?: () => Promise<ArrayBuffer>;
+	weightsLoaderFunc?: () => Promise<ArrayBufferLike>;
 	minContentSize?: number;
 	maxContentSize?: number;
 	normalizeNewline?: boolean;
@@ -97,11 +97,11 @@ export class ModelOperations {
 		});
 	}
 
-	private static NODE_WEIGHTS_FUNC: () => Promise<ArrayBuffer> = async () => {
+	private static NODE_WEIGHTS_FUNC: () => Promise<ArrayBufferLike> = async () => {
 		const fs = await import('fs');
 		const path = await import('path');
 
-		return new Promise<ArrayBuffer>((resolve, reject) => {
+		return new Promise<ArrayBufferLike>((resolve, reject) => {
 			fs.readFile(path.join(__dirname, '..', '..', 'model', 'group1-shard1of1.bin'), (err, data) => {
 				if(err) {
 					reject(err);
@@ -114,11 +114,11 @@ export class ModelOperations {
 
 	private _model: GraphModel | undefined;
 	private _modelJson: io.ModelJSON | undefined;
-	private _weights: ArrayBuffer | undefined;
+	private _weights: ArrayBufferLike | undefined;
 	private readonly _minContentSize: number;
 	private readonly _maxContentSize: number;
 	private readonly _modelJsonLoaderFunc: () => Promise<{ [key:string]: any }>;
-	private readonly _weightsLoaderFunc: () => Promise<ArrayBuffer>;
+	private readonly _weightsLoaderFunc: () => Promise<ArrayBufferLike>;
 	private readonly _normalizeNewline: boolean;
 
 	constructor(modelOptions?: ModelOperationsOptions) {
